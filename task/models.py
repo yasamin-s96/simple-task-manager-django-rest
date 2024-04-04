@@ -1,5 +1,6 @@
 from django.db import models
 from django.conf import settings
+from .managers import TaskManager
 
 STATUS = [("pending", "Pending"), ("complete", "Complete")]
 
@@ -7,21 +8,24 @@ STATUS = [("pending", "Pending"), ("complete", "Complete")]
 class Task(models.Model):
     PRIORITY = [(1, "High"), (2, "Medium"), (3, "Low"), (4, "None")]
 
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     description = models.CharField(max_length=255)
-    priority = models.CharField(max_length=10, choices=PRIORITY, default=4)
-    side_note = models.TextField()
+    priority = models.PositiveSmallIntegerField(choices=PRIORITY, default=4)
+    side_note = models.TextField(null=True, blank=True)
     status = models.CharField(max_length=10, choices=STATUS, default="pending")
-    project = models.ForeignKey("Project", on_delete=models.PROTECT)
-    tags = models.ManyToManyField("Tag")
+    project = models.ForeignKey("Project", on_delete=models.PROTECT, blank=True, null=True)
+    tags = models.ManyToManyField("Tag", blank=True)
     due_date = models.DateTimeField(null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     modified_at = models.DateTimeField(auto_now=True)
+
+    objects = TaskManager()
 
     class Meta:
         indexes = [
             models.Index(fields=["priority"]),
             models.Index(fields=["status"]),
-            models.Index(fields=["-due_date"])
+            models.Index(fields=["-due_date"]),
         ]
 
     def __str__(self):
