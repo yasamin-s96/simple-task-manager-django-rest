@@ -1,31 +1,11 @@
+from django.utils import timezone
 from rest_framework import serializers
 from .models import Task
 
 
 class TaskSerializer(serializers.ModelSerializer):
-    priority = serializers.ChoiceField(choices=Task.PRIORITY, allow_null=True)
+    priority = serializers.ChoiceField(choices=Task.PRIORITY, required=False)
 
-    class Meta:
-        model = Task
-        fields = [
-            "id",
-            "description",
-            "priority",
-            "project",
-            "tags",
-            "due_date",
-        ]
-
-    def create(self, validated_data):
-        """
-        Removing "" from tha validated data in order to get it populated with the default value set by the model.
-        """
-        if not validated_data["priority"]:
-            validated_data.pop("priority")
-        return super().create(validated_data)
-
-
-class UpdateTaskSerializer(TaskSerializer):
     class Meta:
         model = Task
         fields = [
@@ -39,8 +19,14 @@ class UpdateTaskSerializer(TaskSerializer):
             "due_date",
         ]
 
+    def create(self, validated_data):
+        if self.context.get("today"):
+            validated_data["due_date"] = timezone.now()
+        validated_data["user_id"] = self.context["user_id"]
+        return super().create(validated_data)
 
-class DetailedTaskSerializer(serializers.ModelSerializer):
+
+class SimpleTaskSerializer(TaskSerializer):
     class Meta:
         model = Task
         fields = [
@@ -49,6 +35,8 @@ class DetailedTaskSerializer(serializers.ModelSerializer):
             "priority",
             "project",
             "tags",
-            "side_note",
             "due_date",
         ]
+
+
+
