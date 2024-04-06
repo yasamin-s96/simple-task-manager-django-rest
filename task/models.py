@@ -31,6 +31,11 @@ class Task(models.Model):
     def __str__(self):
         return self.description
 
+    def save(self, **kwargs):
+        if not self.project:
+            self.project, _ = Project.objects.get_or_create(title="Tasks", user=self.user)
+        return super().save(**kwargs)
+
 
 class Project(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
