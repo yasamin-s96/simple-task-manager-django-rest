@@ -1,8 +1,7 @@
-from datetime import timedelta
-
 from django.utils import timezone
 from rest_framework import serializers
-from .models import Task
+from datetime import timedelta
+from .models import Task, Project
 
 
 class TaskSerializer(serializers.ModelSerializer):
@@ -27,14 +26,6 @@ class TaskSerializer(serializers.ModelSerializer):
         data["project"] = instance.project.title if instance.project else None
         return data
 
-    def create(self, validated_data):
-        if self.context.get("today"):
-            validated_data["due_date"] = timezone.now()
-        elif self.context.get("tomorrow"):
-            validated_data["due_date"] = timezone.now() + timedelta(days=1)
-        validated_data["user_id"] = self.context["user_id"]
-        return super().create(validated_data)
-
 
 class SimpleTaskSerializer(TaskSerializer):
     class Meta:
@@ -47,3 +38,25 @@ class SimpleTaskSerializer(TaskSerializer):
             "tags",
             "due_date",
         ]
+
+    def create(self, validated_data):
+        if project_id := self.context.get("project_id"):
+            validated_data["project_id"] = project_id
+        if self.context.get("today"):
+            validated_data["due_date"] = timezone.now()
+        elif self.context.get("tomorrow"):
+            validated_data["due_date"] = timezone.now() + timedelta(days=1)
+        validated_data["user_id"] = self.context["user_id"]
+        return super().create(validated_data)
+
+
+class ProjectSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Project
+        fields = ["id", "title", "status"]
+
+
+class SimpleProjectSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Project
+        fields = ["id", "title"]

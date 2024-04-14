@@ -13,7 +13,7 @@ class Task(models.Model):
     priority = models.PositiveSmallIntegerField(choices=PRIORITY, default=4)
     side_note = models.TextField(null=True, blank=True)
     status = models.CharField(max_length=10, choices=STATUS, default="pending")
-    project = models.ForeignKey("Project", on_delete=models.PROTECT, blank=True, null=True)
+    project = models.ForeignKey("Project", on_delete=models.PROTECT, blank=True, null=True, related_name="tasks")
     tags = models.ManyToManyField("Tag", blank=True)
     due_date = models.DateTimeField(null=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -46,6 +46,10 @@ class Project(models.Model):
 
     class Meta:
         unique_together = [("user", "title")]
+        indexes = [
+            models.Index(fields=["title"]),
+            models.Index(fields=["status"])
+        ]
 
     def __str__(self):
         return self.title
