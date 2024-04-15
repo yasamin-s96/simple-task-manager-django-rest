@@ -47,7 +47,6 @@ class Project(models.Model):
     class Meta:
         unique_together = [("user", "title")]
         indexes = [
-            models.Index(fields=["title"]),
             models.Index(fields=["status"])
         ]
 
