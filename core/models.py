@@ -8,7 +8,7 @@ class User(AbstractUser):
 
 class Profile(models.Model):
     MEMBERSHIP_STATUS = [("regular", "Regular"), ("premium", "Premium")]
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="profile")
     date_of_birth = models.DateField(null=True)
     membership = models.CharField(
         max_length=10, choices=MEMBERSHIP_STATUS, default="regular"
