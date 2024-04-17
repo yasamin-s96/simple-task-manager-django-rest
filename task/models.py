@@ -17,7 +17,7 @@ class Task(models.Model):
     tags = models.ManyToManyField("Tag", blank=True)
     due_date = models.DateTimeField(null=True)
     created_at = models.DateTimeField(auto_now_add=True)
-    modified_at = models.DateTimeField(auto_now=True)
+    completed_at = models.DateField(null=True)
 
     objects = TaskManager()
 

@@ -17,7 +17,7 @@ class TaskSerializer(serializers.ModelSerializer):
             "tags",
             "status",
             "side_note",
-            "due_date",
+            "due_date"
         ]
 
     def to_representation(self, instance):
@@ -64,6 +64,23 @@ class SimpleTaskSerializer(TaskSerializer):
             else:
                 task.tags.add(tag)
         return task
+
+
+class CompletedTaskSerializer(TaskSerializer):
+    completed_at = serializers.DateField(read_only=True)
+
+    class Meta:
+        model = Task
+        fields = [
+            "id",
+            "description",
+            "priority",
+            "project",
+            "tags",
+            "status",
+            "side_note",
+            "completed_at"
+        ]
 
 
 class ProjectSerializer(serializers.ModelSerializer):

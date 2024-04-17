@@ -4,7 +4,7 @@ from rest_framework import mixins
 from rest_framework.filters import OrderingFilter
 from datetime import timedelta
 from .models import Task, Project, Tag
-from .serializers import TaskSerializer, SimpleTaskSerializer, SimpleProjectSerializer, ProjectSerializer, TagSerializer
+from .serializers import *
 
 
 class TaskViewSet(ModelViewSet):
@@ -19,7 +19,7 @@ class TaskViewSet(ModelViewSet):
     def get_queryset(self):
         return Task.objects.incomplete_tasks() \
             .prefetch_related("tags").select_related("project") \
-            .filter(user=self.request.user)
+            .filter(user=self.request.user, project__title="Tasks")
 
     def get_serializer_context(self):
         return {"user_id": self.request.user.id}
@@ -75,10 +75,6 @@ class ProjectViewSet(ModelViewSet):
 
     def get_queryset(self):
         return Project.objects.filter(user=self.request.user, status="pending")
-        # pending_tasks = Task.objects.incomplete_tasks().prefetch_related("tags")
-        # prefetch = Prefetch("tasks", pending_tasks)
-        # return Project.objects.prefetch_related(prefetch) \
-        #     .filter(user=self.request.user, status="pending")
 
     def get_serializer_context(self):
         return {"user_id": self.request.user.id}
@@ -114,6 +110,12 @@ class TagRelatedTaskViewSet(TaskViewSet):
 class CompletedTaskViewSet(ModelViewSet):
     http_method_names = ["get", "put", "patch", "delete"]
 
+    def get_serializer_class(self):
+        if self.action == "list":
+            return CompletedTaskSerializer
+        return TaskSerializer
+
     def get_queryset(self):
         return Task.objects.prefetch_related("tags") \
-            .select_related("project").filter(user=self.request.user, status="complete")
+            .select_related("project").filter(user=self.request.user, status="complete")\
+            .order_by("-completed_at")
