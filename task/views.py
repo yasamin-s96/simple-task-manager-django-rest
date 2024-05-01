@@ -3,6 +3,7 @@ from rest_framework.viewsets import ModelViewSet, GenericViewSet
 from rest_framework import mixins
 from rest_framework.filters import OrderingFilter
 from datetime import timedelta
+
 from .models import Task, Project, Tag
 from .serializers import *
 
@@ -17,9 +18,12 @@ class TaskViewSet(ModelViewSet):
         return TaskSerializer
 
     def get_queryset(self):
-        return Task.objects.incomplete_tasks() \
-            .prefetch_related("tags").select_related("project") \
+        return (
+            Task.objects.incomplete_tasks()
+            .prefetch_related("tags")
+            .select_related("project")
             .filter(user=self.request.user, project__title="Tasks")
+        )
 
     def get_serializer_context(self):
         return {"user_id": self.request.user.id}
@@ -31,9 +35,15 @@ class TodayViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, GenericViewSe
     ordering_fields = ["priority", "project", "due_date"]
 
     def get_queryset(self):
-        return Task.objects.incomplete_tasks() \
-            .prefetch_related("tags").select_related("project") \
-            .filter(user=self.request.user, due_date__lt=timezone.now().date() + timedelta(days=1))
+        return (
+            Task.objects.incomplete_tasks()
+            .prefetch_related("tags")
+            .select_related("project")
+            .filter(
+                user=self.request.user,
+                due_date__lt=timezone.now().date() + timedelta(days=1),
+            )
+        )
 
     def get_serializer_context(self):
         return {"user_id": self.request.user.id, "today": True}
@@ -45,9 +55,15 @@ class TomorrowViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, GenericVie
     ordering_fields = ["priority", "project"]
 
     def get_queryset(self):
-        return Task.objects.incomplete_tasks() \
-            .prefetch_related("tags").select_related("project") \
-            .filter(user=self.request.user, due_date__date=timezone.now().date() + timedelta(days=1))
+        return (
+            Task.objects.incomplete_tasks()
+            .prefetch_related("tags")
+            .select_related("project")
+            .filter(
+                user=self.request.user,
+                due_date__date=timezone.now().date() + timedelta(days=1),
+            )
+        )
 
     def get_serializer_context(self):
         return {"user_id": self.request.user.id, "tomorrow": True}
@@ -59,9 +75,12 @@ class PlannedViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, GenericView
     ordering_fields = ["priority", "project", "due_date"]
 
     def get_queryset(self):
-        return Task.objects.incomplete_tasks() \
-            .prefetch_related("tags").select_related("project") \
+        return (
+            Task.objects.incomplete_tasks()
+            .prefetch_related("tags")
+            .select_related("project")
             .filter(user=self.request.user, due_date__isnull=False)
+        )
 
     def get_serializer_context(self):
         return {"user_id": self.request.user.id, "today": True}
@@ -83,11 +102,18 @@ class ProjectViewSet(ModelViewSet):
 class ProjectRelatedTaskViewSet(TaskViewSet):
 
     def get_queryset(self):
-        return Task.objects.incomplete_tasks().prefetch_related("tags") \
-            .select_related("project").filter(project_id=self.kwargs["project_pk"])
+        return (
+            Task.objects.incomplete_tasks()
+            .prefetch_related("tags")
+            .select_related("project")
+            .filter(project_id=self.kwargs["project_pk"])
+        )
 
     def get_serializer_context(self):
-        return {"user_id": self.request.user.id, "project_id": self.kwargs["project_pk"]}
+        return {
+            "user_id": self.request.user.id,
+            "project_id": self.kwargs["project_pk"],
+        }
 
 
 class TagViewSet(ModelViewSet):
@@ -100,8 +126,12 @@ class TagViewSet(ModelViewSet):
 
 class TagRelatedTaskViewSet(TaskViewSet):
     def get_queryset(self):
-        return Task.objects.incomplete_tasks().prefetch_related("tags") \
-            .select_related("project").filter(tags=self.kwargs["tag_pk"])
+        return (
+            Task.objects.incomplete_tasks()
+            .prefetch_related("tags")
+            .select_related("project")
+            .filter(tags=self.kwargs["tag_pk"])
+        )
 
     def get_serializer_context(self):
         return {"user_id": self.request.user.id, "tag_id": self.kwargs["tag_pk"]}
@@ -116,6 +146,9 @@ class CompletedTaskViewSet(ModelViewSet):
         return TaskSerializer
 
     def get_queryset(self):
-        return Task.objects.prefetch_related("tags") \
-            .select_related("project").filter(user=self.request.user, status="complete")\
+        return (
+            Task.objects.prefetch_related("tags")
+            .select_related("project")
+            .filter(user=self.request.user, status="complete")
             .order_by("-completed_at")
+        )

@@ -17,7 +17,7 @@ class TaskSerializer(serializers.ModelSerializer):
             "tags",
             "status",
             "side_note",
-            "due_date"
+            "due_date",
         ]
 
     def to_representation(self, instance):
@@ -45,7 +45,9 @@ class SimpleTaskSerializer(TaskSerializer):
             if Project.objects.filter(id=project_id).exists():
                 validated_data["project_id"] = project_id
             else:
-                raise serializers.ValidationError({"project": f"Project with ID {project_id} does not exist."})
+                raise serializers.ValidationError(
+                    {"project": f"Project with ID {project_id} does not exist."}
+                )
 
         if self.context.get("today"):
             validated_data["due_date"] = timezone.now()
@@ -60,7 +62,9 @@ class SimpleTaskSerializer(TaskSerializer):
             try:
                 tag = Tag.objects.get(id=tag_id)
             except Tag.DoesNotExist:
-                raise serializers.ValidationError({"tags": f"Tag with ID {tag_id} does not exist."})
+                raise serializers.ValidationError(
+                    {"tags": f"Tag with ID {tag_id} does not exist."}
+                )
             else:
                 task.tags.add(tag)
         return task
@@ -79,7 +83,7 @@ class CompletedTaskSerializer(TaskSerializer):
             "tags",
             "status",
             "side_note",
-            "completed_at"
+            "completed_at",
         ]
 
 
@@ -88,16 +92,24 @@ class ProjectSerializer(serializers.ModelSerializer):
         model = Project
         fields = ["id", "title", "status"]
 
-    def validate_title(self, value):
-        if Project.objects.filter(user_id=self.context["user_id"], title=value).exists():
-            raise serializers.ValidationError({"title": "A project with the given title already exists."})
-        return value
-
 
 class SimpleProjectSerializer(serializers.ModelSerializer):
     class Meta:
         model = Project
         fields = ["id", "title"]
+
+    def validate_title(self, value):
+        if Project.objects.filter(
+            user_id=self.context["user_id"], title=value
+        ).exists():
+            raise serializers.ValidationError(
+                {"title": "A project with the given title already exists."}
+            )
+        return value
+
+    def create(self, validated_data):
+        validated_data["user_id"] = self.context["user_id"]
+        return super().create(validated_data)
 
 
 class TagSerializer(serializers.ModelSerializer):
@@ -107,5 +119,7 @@ class TagSerializer(serializers.ModelSerializer):
 
     def validate_title(self, value):
         if Tag.objects.filter(user_id=self.context["user_id"], title=value).exists():
-            raise serializers.ValidationError({"title": "A tag with the given title already exists."})
+            raise serializers.ValidationError(
+                {"title": "A tag with the given title already exists."}
+            )
         return value
