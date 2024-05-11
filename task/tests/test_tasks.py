@@ -11,8 +11,8 @@ User = get_user_model()
 
 
 @pytest.fixture
-def create_task():
-    def do_create_task(user=None, quantity=None):
+def create_task(auth_user):
+    def do_create_task(user=auth_user, quantity=None):
         return baker.make(Task, user=user, _quantity=quantity)
 
     return do_create_task
@@ -43,7 +43,7 @@ class TestTaskList:
         self, client, create_task, authenticate, auth_user, other_user
     ):
         other_users_tasks = create_task(user=other_user, quantity=5)
-        current_users_tasks = create_task(user=auth_user, quantity=5)
+        current_users_tasks = create_task(quantity=5)
 
         response = client.get("/tasks/")
         assert len(response.data) == 5
