@@ -4,6 +4,8 @@ from rest_framework import mixins
 from rest_framework.filters import OrderingFilter
 from datetime import timedelta
 
+from .permissions import ProjectsPermission
+
 from .models import Task, Project, Tag
 from .serializers import *
 
@@ -87,6 +89,8 @@ class PlannedViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, GenericView
 
 
 class ProjectViewSet(ModelViewSet):
+    permission_classes = [ProjectsPermission]
+
     def get_serializer_class(self):
         if self.action in ["list", "create"]:
             return SimpleProjectSerializer

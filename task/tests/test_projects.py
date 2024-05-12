@@ -1,18 +1,14 @@
-from pydoc import cli
-import stat
-from urllib import response
 from rest_framework import status
 import pytest
 from model_bakery import baker
 
 from task.models import Project
-from task.views import ProjectRelatedTaskViewSet
 
 
 @pytest.fixture
 def create_project(auth_user):
-    def do_create_project(user=auth_user, quantity=None):
-        return baker.make(Project, user=user, _quantity=quantity)
+    def do_create_project(user=auth_user, quantity=None, **kwargs):
+        return baker.make(Project, user=user, _quantity=quantity, **kwargs)
 
     return do_create_project
 
@@ -79,7 +75,70 @@ class TestRetrieveProject:
 
         assert response.status_code == status.HTTP_404_NOT_FOUND
 
-    # if the project_id is invalid returns 404
+    def test_if_wrong_id_returns_404(self, client, authenticate):
+        response = client.get("/projects/1/")
+
+        assert response.status_code == status.HTTP_404_NOT_FOUND
 
 
-# class TestUpdateProject
+@pytest.mark.django_db
+class TestUpdateProject:
+    def test_if_data_is_valid_returns_200(self, client, authenticate, create_project):
+        project = create_project()
+        update = {"title": "updated"}
+
+        response = client.put(f"/projects/{project.id}/", update)
+
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data == {
+            "id": project.id,
+            "title": update["title"],
+            "status": project.status,
+        }
+
+    def test_if_data_is_invalid_returns_400(self, client, authenticate, create_project):
+        project = create_project()
+        update = {"title": ""}
+
+        response = client.put(f"/projects/{project.id}/", update)
+
+        assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+    def test_if_nonowner_can_update_returns_404(
+        self, client, authenticate, other_user, create_project
+    ):
+        project = create_project(user=other_user)
+
+        response = client.put(f"/projects/{project.id}/")
+
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+
+
+@pytest.mark.django_db
+class TestDeleteProject:
+    def test_if_deletion_succeeds_returns_204(
+        self, client, authenticate, create_project
+    ):
+        project = create_project()
+
+        response = client.delete(f"/projects/{project.id}/")
+
+        assert response.status_code == status.HTTP_204_NO_CONTENT
+
+    def test_if_nonowner_can_delete_returns_404(
+        self, client, authenticate, other_user, create_project
+    ):
+        project = create_project(user=other_user)
+
+        response = client.delete(f"/projects/{project.id}/")
+
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+
+    def test_if_attempted_to_delete_Tasks_project_returns_403(
+        self, client, authenticate, create_project
+    ):
+        tasks_project = create_project(title="Tasks")
+
+        response = client.delete(f"/projects/{tasks_project.id}/")
+
+        assert response.status_code == status.HTTP_403_FORBIDDEN

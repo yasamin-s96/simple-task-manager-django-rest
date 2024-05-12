@@ -40,6 +40,13 @@ class SimpleTaskSerializer(TaskSerializer):
             "due_date",
         ]
 
+    def validate_project(self, value):
+        if value.user.id != self.context["user_id"]:
+            raise serializers.ValidationError(
+                f"User doesn't own '{value.title}' project."
+            )
+        return value
+
     def create(self, validated_data):
         if project_id := self.context.get("project_id"):
             if Project.objects.filter(id=project_id).exists():
