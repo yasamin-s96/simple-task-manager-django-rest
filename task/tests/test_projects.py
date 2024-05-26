@@ -125,7 +125,7 @@ class TestDeleteProject:
 
         assert response.status_code == status.HTTP_204_NO_CONTENT
 
-    def test_if_nonowner_can_delete_returns_404(
+    def test_if_nonowner_attempted_delete_returns_404(
         self, client, authenticate, other_user, create_project
     ):
         project = create_project(user=other_user)

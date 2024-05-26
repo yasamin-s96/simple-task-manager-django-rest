@@ -15,7 +15,7 @@ class TaskViewSet(ModelViewSet):
     ordering_fields = ["priority", "project", "due_date"]
 
     def get_serializer_class(self):
-        if self.action in ["list", "create"]:
+        if self.action in ["update", "create"]:
             return SimpleTaskSerializer
         return TaskSerializer
 
@@ -43,7 +43,7 @@ class TodayViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, GenericViewSe
             .select_related("project")
             .filter(
                 user=self.request.user,
-                due_date__lt=timezone.now().date() + timedelta(days=1),
+                due_date__lte=timezone.now(),
             )
         )
 

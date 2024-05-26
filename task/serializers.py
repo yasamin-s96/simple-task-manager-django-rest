@@ -6,6 +6,8 @@ from .models import Task, Project, Tag
 
 class TaskSerializer(serializers.ModelSerializer):
     priority = serializers.ChoiceField(choices=Task.PRIORITY, required=False)
+    project = serializers.StringRelatedField()
+    tags = serializers.StringRelatedField(many=True)
 
     class Meta:
         model = Task
@@ -20,15 +22,32 @@ class TaskSerializer(serializers.ModelSerializer):
             "due_date",
         ]
 
-    def to_representation(self, instance):
-        # Serializing project field with its title instead of ID.
-        data = super().to_representation(instance)
-        data["project"] = instance.project.title if instance.project else None
-        data["tags"] = [tag.title for tag in instance.tags.all()]
-        return data
+    # def to_representation(self, instance):
+    #     # Serializing project field with its title instead of ID.
+    #     data = super().to_representation(instance)
+    #     data["project"] = instance.project.title if instance.project else None
+    #     data["tags"] = [tag.title for tag in instance.tags.all()]
+    #     return data
 
 
-class SimpleTaskSerializer(TaskSerializer):
+class UserFilteredPrimaryKeyRelatedField(serializers.PrimaryKeyRelatedField):
+    def get_queryset(self):
+        user_id = self.context.get("user_id")
+        queryset = super().get_queryset()
+        if user_id:
+            return queryset.filter(user__id=user_id)
+        return queryset
+
+
+class SimpleTaskSerializer(serializers.ModelSerializer):
+    project = UserFilteredPrimaryKeyRelatedField(
+        queryset=Project.objects, required=False, allow_null=True
+    )
+
+    tags = UserFilteredPrimaryKeyRelatedField(
+        many=True, queryset=Tag.objects, required=False
+    )
+
     class Meta:
         model = Task
         fields = [
@@ -40,22 +59,7 @@ class SimpleTaskSerializer(TaskSerializer):
             "due_date",
         ]
 
-    def validate_project(self, value):
-        if value.user.id != self.context["user_id"]:
-            raise serializers.ValidationError(
-                f"User doesn't own '{value.title}' project."
-            )
-        return value
-
     def create(self, validated_data):
-        if project_id := self.context.get("project_id"):
-            if Project.objects.filter(id=project_id).exists():
-                validated_data["project_id"] = project_id
-            else:
-                raise serializers.ValidationError(
-                    {"project": f"Project with ID {project_id} does not exist."}
-                )
-
         if self.context.get("today"):
             validated_data["due_date"] = timezone.now()
 

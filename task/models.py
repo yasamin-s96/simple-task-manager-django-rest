@@ -13,11 +13,13 @@ class Task(models.Model):
     priority = models.PositiveSmallIntegerField(choices=PRIORITY, default=4)
     side_note = models.TextField(null=True, blank=True)
     status = models.CharField(max_length=10, choices=STATUS, default="pending")
-    project = models.ForeignKey("Project", on_delete=models.PROTECT, blank=True, null=True, related_name="tasks")
+    project = models.ForeignKey(
+        "Project", on_delete=models.PROTECT, blank=True, null=True, related_name="tasks"
+    )
     tags = models.ManyToManyField("Tag", blank=True)
-    due_date = models.DateTimeField(null=True)
+    due_date = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
-    completed_at = models.DateField(null=True)
+    completed_at = models.DateField(null=True, blank=True)
 
     objects = TaskManager()
 
@@ -33,7 +35,9 @@ class Task(models.Model):
 
     def save(self, **kwargs):
         if not self.project:
-            self.project, _ = Project.objects.get_or_create(title="Tasks", user=self.user)
+            self.project, _ = Project.objects.get_or_create(
+                title="Tasks", user=self.user
+            )
         return super().save(**kwargs)
 
 
@@ -46,9 +50,7 @@ class Project(models.Model):
 
     class Meta:
         unique_together = [("user", "title")]
-        indexes = [
-            models.Index(fields=["status"])
-        ]
+        indexes = [models.Index(fields=["status"])]
 
     def __str__(self):
         return self.title
