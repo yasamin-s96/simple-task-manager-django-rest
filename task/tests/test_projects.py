@@ -113,6 +113,15 @@ class TestUpdateProject:
 
         assert response.status_code == status.HTTP_404_NOT_FOUND
 
+    def test_if_attempted_to_update_Tasks_project_status_to_complete_returns_403(
+        self, client, authenticate, create_project
+    ):
+        tasks_project = create_project(title="Tasks")
+
+        response = client.put(f"/projects/{tasks_project.id}/", {"status": "complete"})
+
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+
 
 @pytest.mark.django_db
 class TestDeleteProject:
