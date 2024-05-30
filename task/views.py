@@ -35,7 +35,7 @@ class TaskViewSet(ModelViewSet):
 
 
 class TodayViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, GenericViewSet):
-    serializer_class = SimpleTaskSerializer
+    serializer_class = AddOrModifyTaskSerializer
     filter_backends = [OrderingFilter]
     ordering_fields = ["priority", "project", "due_date"]
 
@@ -55,7 +55,7 @@ class TodayViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, GenericViewSe
 
 
 class TomorrowViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, GenericViewSet):
-    serializer_class = SimpleTaskSerializer
+    serializer_class = AddOrModifyTaskSerializer
     filter_backends = [OrderingFilter]
     ordering_fields = ["priority", "project"]
 
@@ -75,7 +75,7 @@ class TomorrowViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, GenericVie
 
 
 class PlannedViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, GenericViewSet):
-    serializer_class = SimpleTaskSerializer
+    serializer_class = AddOrModifyTaskSerializer
     filter_backends = [OrderingFilter]
     ordering_fields = ["priority", "project", "due_date"]
 
