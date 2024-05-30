@@ -1,6 +1,7 @@
 from django.db import models
 from django.conf import settings
 from .managers import TaskManager
+from report.models import Report
 
 STATUS = [("pending", "Pending"), ("complete", "Complete")]
 
@@ -8,7 +9,16 @@ STATUS = [("pending", "Pending"), ("complete", "Complete")]
 class Task(models.Model):
     PRIORITY = [(1, "High"), (2, "Medium"), (3, "Low"), (4, "None")]
 
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="tasks"
+    )
+    report = models.ForeignKey(
+        Report,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="tasks",
+    )
     description = models.CharField(max_length=255)
     priority = models.PositiveSmallIntegerField(choices=PRIORITY, default=4)
     side_note = models.TextField(null=True, blank=True)
@@ -42,11 +52,20 @@ class Task(models.Model):
 
 
 class Project(models.Model):
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="projects"
+    )
+    report = models.ForeignKey(
+        Report,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="projects",
+    )
     title = models.CharField(max_length=100)
     status = models.CharField(max_length=10, choices=STATUS, default="pending")
     created_at = models.DateTimeField(auto_now_add=True)
-    modified_at = models.DateTimeField(auto_now=True)
+    completed_at = models.DateField(null=True, blank=True)
 
     class Meta:
         unique_together = [("user", "title")]

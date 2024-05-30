@@ -1,0 +1,22 @@
+# Ignore Python cache files
+__pycache__
+*.pyc
+.pytest_cache
+
+# Ignore environment variable files
+.env
+
+# Ignore Git repository files
+.git
+.gitignore
+
+# Ignore log files
+*.log
+
+# Ignore other unnecessary files and directories
+*.swp
+.DS_Store
+.idea
+.vscode
+
+venv/

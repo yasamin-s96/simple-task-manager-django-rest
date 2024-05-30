@@ -22,13 +22,6 @@ class TaskSerializer(serializers.ModelSerializer):
             "due_date",
         ]
 
-    # def to_representation(self, instance):
-    #     # Serializing project field with its title instead of ID.
-    #     data = super().to_representation(instance)
-    #     data["project"] = instance.project.title if instance.project else None
-    #     data["tags"] = [tag.title for tag in instance.tags.all()]
-    #     return data
-
 
 class UserFilteredPrimaryKeyRelatedField(serializers.PrimaryKeyRelatedField):
     def get_queryset(self):
@@ -39,7 +32,7 @@ class UserFilteredPrimaryKeyRelatedField(serializers.PrimaryKeyRelatedField):
         return queryset
 
 
-class SimpleTaskSerializer(serializers.ModelSerializer):
+class AddOrModifyTaskSerializer(serializers.ModelSerializer):
     project = UserFilteredPrimaryKeyRelatedField(
         queryset=Project.objects, required=False, allow_null=True
     )
@@ -56,6 +49,8 @@ class SimpleTaskSerializer(serializers.ModelSerializer):
             "priority",
             "project",
             "tags",
+            "status",
+            "side_note",
             "due_date",
         ]
 
@@ -79,6 +74,27 @@ class SimpleTaskSerializer(serializers.ModelSerializer):
             else:
                 task.tags.add(tag)
         return task
+
+    def update(self, instance, validated_data):
+        if received_status := validated_data.get("status"):
+            if instance.status == "pending" and received_status == "complete":
+                instance.completed_at = timezone.now().date()
+            elif instance.status == "complete" and received_status == "pending":
+                instance.completed_at = None
+        return super().update(instance, validated_data)
+
+
+class SimpleTaskSerializer(TaskSerializer):
+    class Meta(TaskSerializer.Meta):
+        fields = [
+            "id",
+            "description",
+            "priority",
+            "project",
+            "tags",
+            "side_note",
+            "due_date",
+        ]
 
 
 class CompletedTaskSerializer(TaskSerializer):
@@ -121,6 +137,14 @@ class SimpleProjectSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         validated_data["user_id"] = self.context["user_id"]
         return super().create(validated_data)
+
+    def update(self, instance, validated_data):
+        if received_status := validated_data.get("status"):
+            if instance.status == "pending" and received_status == "complete":
+                instance.completed_at = timezone.now().date()
+            elif instance.status == "complete" and received_status == "pending":
+                instance.completed_at = None
+        return super().update(instance, validated_data)
 
 
 class TagSerializer(serializers.ModelSerializer):

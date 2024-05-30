@@ -1,0 +1,77 @@
+version: "3.8"
+
+services:
+  redis:
+    image: redis:7.0.11-alpine
+
+  postgres:
+    image: postgres:latest
+    environment:
+      - POSTGRES_DB=todo_data
+      - POSTGRES_USER=Yasamin
+      - POSTGRES_PASSWORD=39576798
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - 5432:5432
+
+  django:
+    container_name: django
+    build:
+      context: .
+    command: python manage.py runserver 0.0.0.0:8000
+    volumes:
+      - .:/usr/src/app/
+    ports:
+      - 8001:8000
+    environment:
+      - POSTGRES_DB=todo_data
+      - POSTGRES_USER=Yasamin
+      - POSTGRES_PASSWORD=39576798
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - DEBUG=1
+      - SECRET_KEY=0930jd30j9jd09j109fj019j9f
+      - ALLOWED_HOSTS=localhost,127.0.0.1
+    depends_on:
+      - redis
+
+  celery:
+    container_name: celery
+    build:
+      context: .
+    command: celery --app=todolist_api worker -l INFO
+    volumes:
+      - .:/usr/src/app/
+    environment:
+      - POSTGRES_DB=todo_data
+      - POSTGRES_USER=Yasamin
+      - POSTGRES_PASSWORD=39576798
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - DEBUG=1
+      - SECRET_KEY=0930jd30j9jd09j109fj019j9f
+      - ALLOWED_HOSTS=localhost,127.0.0.1
+    depends_on:
+      - redis
+
+  celery-beat:
+    build:
+      context: .
+    command: celery --app=todolist_api beat -l INFO
+    volumes:
+      - .:/usr/src/app/
+    environment:
+      - POSTGRES_DB=todo_data
+      - POSTGRES_USER=Yasamin
+      - POSTGRES_PASSWORD=39576798
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - DEBUG=1
+      - SECRET_KEY=0930jd30j9jd09j109fj019j9f
+      - ALLOWED_HOSTS=localhost,127.0.0.1
+    depends_on:
+      - redis
+
+volumes:
+  postgres_data:

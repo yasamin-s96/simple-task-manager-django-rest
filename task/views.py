@@ -15,9 +15,12 @@ class TaskViewSet(ModelViewSet):
     ordering_fields = ["priority", "project", "due_date"]
 
     def get_serializer_class(self):
-        if self.action in ["update", "create"]:
+        if self.action in ["create", "update", "partial_update"]:
+            return AddOrModifyTaskSerializer
+        if self.action == "retrieve":
+            return TaskSerializer
+        else:
             return SimpleTaskSerializer
-        return TaskSerializer
 
     def get_queryset(self):
         return (
