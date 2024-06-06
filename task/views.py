@@ -15,10 +15,12 @@ class TaskViewSet(ModelViewSet):
     ordering_fields = ["priority", "project", "due_date"]
 
     def get_serializer_class(self):
-        if self.action in ["create", "update", "partial_update"]:
-            return AddOrModifyTaskSerializer
+        if self.action in ["update", "partial_update"]:
+            return UpdateTaskSerializer
         if self.action == "retrieve":
             return TaskSerializer
+        if self.action == "create":
+            return CreateTaskSerializer
         else:
             return SimpleTaskSerializer
 
@@ -35,9 +37,13 @@ class TaskViewSet(ModelViewSet):
 
 
 class TodayViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, GenericViewSet):
-    serializer_class = AddOrModifyTaskSerializer
     filter_backends = [OrderingFilter]
     ordering_fields = ["priority", "project", "due_date"]
+
+    def get_serializer_class(self):
+        if self.action == "list":
+            return TaskSerializer
+        return CreateTaskSerializer
 
     def get_queryset(self):
         return (
@@ -55,9 +61,13 @@ class TodayViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, GenericViewSe
 
 
 class TomorrowViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, GenericViewSet):
-    serializer_class = AddOrModifyTaskSerializer
     filter_backends = [OrderingFilter]
     ordering_fields = ["priority", "project"]
+
+    def get_serializer_class(self):
+        if self.action == "list":
+            return TaskSerializer
+        return CreateTaskSerializer
 
     def get_queryset(self):
         return (
@@ -75,9 +85,13 @@ class TomorrowViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, GenericVie
 
 
 class PlannedViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, GenericViewSet):
-    serializer_class = AddOrModifyTaskSerializer
     filter_backends = [OrderingFilter]
     ordering_fields = ["priority", "project", "due_date"]
+
+    def get_serializer_class(self):
+        if self.action == "list":
+            return TaskSerializer
+        return CreateTaskSerializer
 
     def get_queryset(self):
         return (

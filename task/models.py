@@ -1,5 +1,6 @@
 from django.db import models
 from django.conf import settings
+from django.utils import timezone
 from .managers import TaskManager
 from report.models import Report
 
@@ -12,13 +13,6 @@ class Task(models.Model):
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="tasks"
     )
-    report = models.ForeignKey(
-        Report,
-        null=True,
-        blank=True,
-        on_delete=models.SET_NULL,
-        related_name="tasks",
-    )
     description = models.CharField(max_length=255)
     priority = models.PositiveSmallIntegerField(choices=PRIORITY, default=4)
     side_note = models.TextField(null=True, blank=True)
@@ -27,8 +21,16 @@ class Task(models.Model):
         "Project", on_delete=models.PROTECT, blank=True, null=True, related_name="tasks"
     )
     tags = models.ManyToManyField("Tag", blank=True)
-    due_date = models.DateTimeField(null=True, blank=True)
-    created_at = models.DateTimeField(auto_now_add=True)
+    report = models.ForeignKey(
+        Report,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="tasks",
+    )
+    repeat_schedule = models.DurationField(null=True, blank=True)
+    due_date = models.DateField(null=True, blank=True)
+    created_at = models.DateField(auto_now_add=True)
     completed_at = models.DateField(null=True, blank=True)
 
     objects = TaskManager()
@@ -44,10 +46,14 @@ class Task(models.Model):
         return self.description
 
     def save(self, **kwargs):
-        if not self.project:
+        if self.project is None:
             self.project, _ = Project.objects.get_or_create(
                 title="Tasks", user=self.user
             )
+
+        if self.repeat and self.repeat_schedule_start_date is None:
+            self.repeat_schedule_start_date = timezone.now().date()
+
         return super().save(**kwargs)
 
 

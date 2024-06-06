@@ -32,7 +32,7 @@ class UserFilteredPrimaryKeyRelatedField(serializers.PrimaryKeyRelatedField):
         return queryset
 
 
-class AddOrModifyTaskSerializer(serializers.ModelSerializer):
+class CreateTaskSerializer(serializers.ModelSerializer):
     project = UserFilteredPrimaryKeyRelatedField(
         queryset=Project.objects, required=False, allow_null=True
     )
@@ -49,8 +49,8 @@ class AddOrModifyTaskSerializer(serializers.ModelSerializer):
             "priority",
             "project",
             "tags",
-            "status",
-            "side_note",
+            "repeat",
+            "repeat_schedule",
             "due_date",
         ]
 
@@ -74,6 +74,23 @@ class AddOrModifyTaskSerializer(serializers.ModelSerializer):
             else:
                 task.tags.add(tag)
         return task
+
+
+class UpdateTaskSerializer(CreateTaskSerializer):
+    class Meta:
+        model = Task
+        fields = [
+            "id",
+            "description",
+            "priority",
+            "project",
+            "tags",
+            "status",
+            "side_note",
+            "repeat",
+            "repeat_schedule",
+            "due_date",
+        ]
 
     def update(self, instance, validated_data):
         if received_status := validated_data.get("status"):
@@ -158,3 +175,7 @@ class TagSerializer(serializers.ModelSerializer):
                 {"title": "A tag with the given title already exists."}
             )
         return value
+
+    def create(self, validated_data):
+        validated_data["user_id"] = self.context["user_id"]
+        return super().create(validated_data)

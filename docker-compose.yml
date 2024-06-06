@@ -24,6 +24,7 @@ services:
       - .:/usr/src/app/
     ports:
       - 8001:8000
+      - 4444:4444
     environment:
       - POSTGRES_DB=todo_data
       - POSTGRES_USER=Yasamin
