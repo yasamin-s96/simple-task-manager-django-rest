@@ -51,9 +51,6 @@ class Task(models.Model):
                 title="Tasks", user=self.user
             )
 
-        if self.repeat and self.repeat_schedule_start_date is None:
-            self.repeat_schedule_start_date = timezone.now().date()
-
         return super().save(**kwargs)
 
 

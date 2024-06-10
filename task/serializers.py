@@ -49,7 +49,6 @@ class CreateTaskSerializer(serializers.ModelSerializer):
             "priority",
             "project",
             "tags",
-            "repeat",
             "repeat_schedule",
             "due_date",
         ]
@@ -87,7 +86,6 @@ class UpdateTaskSerializer(CreateTaskSerializer):
             "tags",
             "status",
             "side_note",
-            "repeat",
             "repeat_schedule",
             "due_date",
         ]

@@ -10,12 +10,16 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ.get("SECRET_KEY", "kljdf890980808sfhkjhkhkhkhs9498555")
+SECRET_KEY = os.environ.get("SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get("DEBUG")
 
-ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS").split(",") if os.environ.get("ALLOWED_HOSTS") else ["127.0.0.1"]
+ALLOWED_HOSTS = (
+    os.environ.get("ALLOWED_HOSTS").split(",")
+    if os.environ.get("ALLOWED_HOSTS")
+    else ["127.0.0.1"]
+)
 
 # Application definition
 
@@ -30,6 +34,7 @@ INSTALLED_APPS = [
     "djoser",
     "django_filters",
     "debug_toolbar",
+    "drf_yasg",
     "core.apps.CoreConfig",
     "task.apps.TaskConfig",
     "report.apps.ReportConfig",
@@ -85,11 +90,11 @@ WSGI_APPLICATION = "todolist_api.wsgi.application"
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
-        "NAME": os.environ.get("POSTGRES_DB", "todo_data"),
-        "USER": os.environ.get("POSTGRES_USER", "Yasamin"),
-        "PASSWORD": os.environ.get("POSTGRES_PASSWORD", "39576798"),
-        "HOST": os.environ.get("POSTGRES_HOST", "localhost"),
-        "PORT": os.environ.get("POSTGRES_PORT", "5432"),
+        "NAME": os.environ.get("POSTGRES_DB"),
+        "USER": os.environ.get("POSTGRES_USER"),
+        "PASSWORD": os.environ.get("POSTGRES_PASSWORD"),
+        "HOST": os.environ.get("POSTGRES_HOST"),
+        "PORT": os.environ.get("POSTGRES_PORT"),
     }
 }
 
