@@ -46,4 +46,6 @@ def detect_recurring_task(sender, instance, **kwargs):
 
             new_upcoming_task.save()
 
-            new_upcoming_task.tags.set(instance.tags.all() or original.tags.all())
+            new_upcoming_task.tags.set(
+                instance.tags.all() if instance.tags.exists() else original.tags.all()
+            )
